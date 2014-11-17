@@ -24,8 +24,8 @@ following:
 Usage
 -----
 
-To start the TFTP server, run `python tftpd.py`. This will start the TFTP
-server, which will listen on port 69 until it is terminated.
+To start the TFTP server, run `python tftpd.py`. The TFTP server will listen
+on port 69 and handle TFTP transfers until it is terminated.
 
 License
 -------
