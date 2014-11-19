@@ -4,8 +4,8 @@
 Copyright (c) 2014 Stephen Booher
 
 A server implementation of the TFTP protocol (revision 2) as
-described in RFC 783 by K. R. Sollins in June 1981.
-https://tools.ietf.org/html/rfc783
+described in RFC 1350 by K. Sollins in July 1992.
+https://tools.ietf.org/html/rfc1350
 """
 
 from __future__ import print_function
@@ -46,8 +46,12 @@ class Transfer:
         try:
             with open(filename, mode) as f:
                 block = 1
+                retransmit = False
+                data = None
                 while True:
-                    data = f.read(MAX_DATA_SIZE)
+                    if not retransmit:
+                        data = f.read(MAX_DATA_SIZE)
+
                     if not data:
                         break
                     self.send_data(block, data)
@@ -64,9 +68,17 @@ class Transfer:
                     print('Receive Op %d Block %s' % (opcode, clientblock))
 
                     if opcode == OP_ACK:
-                        block += 1
+                        if block == clientblock:
+                            block += 1
+                            retransmit = False
+                        elif block > clientblock:
+                            retransmit = True
+                        else:
+                            self.send_error(ERROR_ILLEGAL_OPERATION, 'Illegal TFTP operation')
+                            break
                     elif opcode != OP_ERROR:
                         self.send_error(ERROR_ILLEGAL_OPERATION, 'Illegal TFTP operation')
+                        break
                     elif opcode == OP_ERROR:
                         # error received
                         break
